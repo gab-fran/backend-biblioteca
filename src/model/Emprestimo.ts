@@ -1,6 +1,11 @@
+import type { EmprestimoDTO } from "../interface/EmprestimoDTO.js";
+import { DatabaseModel } from "./DatabaseModel.js";
+
+const database = new DatabaseModel().pool;
+
 class Emprestimo {
     // Atributos
-    private idEmprestimo: number;
+    private idEmprestimo: number = 0;
     private idAluno: number;
     private idLivro: number;
     private dataEmprestimo: Date;
@@ -9,14 +14,12 @@ class Emprestimo {
 
     // Construtor
     constructor(
-        _idEmprestimo: number,
         _idAluno: number,
         _idLivro: number,
         _dataEmprestimo: Date,
         _dataDevolucao: Date,
         _statusEmprestimo: string
     ) {
-        this.idEmprestimo = _idEmprestimo;
         this.idAluno = _idAluno;
         this.idLivro = _idLivro;
         this.dataEmprestimo = _dataEmprestimo;
@@ -78,6 +81,87 @@ class Emprestimo {
 
     public setStatusEmprestimo(statusEmprestimo: string): void {
         this.statusEmprestimo = statusEmprestimo;
+    }
+
+    static async listarEmprestimos(): Promise<Array<Emprestimo> | null> {
+        try {
+            let listaDeEmprestimos: Array<Emprestimo> = [];
+            const querySelectEmprestimos = "SELECT * FROM Emprestimo;";
+            const respostaBD = await database.query(querySelectEmprestimos);
+
+            respostaBD.rows.forEach((EmprestimoBD) => {
+                const novoEmprestimo = new Emprestimo(
+                    EmprestimoBD.id_aluno,
+                    EmprestimoBD.id_livro,
+                    EmprestimoBD.data_emprestimo,
+                    EmprestimoBD.data_devolucao,
+                    EmprestimoBD.status
+                );
+
+                novoEmprestimo.setIdEmprestimo(EmprestimoBD.id_emprestimo);
+
+                listaDeEmprestimos.push(novoEmprestimo);
+            });
+
+            return listaDeEmprestimos;
+        } catch (error) {
+            console.error(`Erro na consulta ao banco de dados. ${error}`);
+            return null;
+        }
+    }
+
+    static async listarEmprestimoId(idEmprestimo: number): Promise<Emprestimo | null> {
+        try {
+            const querySelectEmprestimo = "SELECT * FROM Emprestimo WHERE id_emprestimo = $1;";
+            const respostaBD = await database.query(querySelectEmprestimo, [idEmprestimo]);
+
+            if (respostaBD.rowCount != 0) {
+                const emprestimo: Emprestimo = new Emprestimo(
+                    respostaBD.rows[0].id_aluno,
+                    respostaBD.rows[0].id_livro,
+                    respostaBD.rows[0].data_emprestimo,
+                    respostaBD.rows[0].data_devolucao,
+                    respostaBD.rows[0].status
+                );
+
+                emprestimo.setIdEmprestimo(respostaBD.rows[0].id_emprestimo);
+                return emprestimo;
+            }
+
+            return null;
+        } catch (error) {
+            console.error(`Erro ao buscar emprestimo no banco de dados. ${error}`);
+            return null;
+        }
+    }
+
+    static async cadastrarEmprestimo(emprestimo: EmprestimoDTO): Promise<boolean> {
+        try {
+            const queryInsertEmprestimo = `INSERT INTO Emprestimo (id_aluno, id_livro, data_emprestimo, data_devolucao, status_emprestimo) 
+                            VALUES
+                            ($1, $2, $3, $4, $5)
+                            RETURNING id_emprestimo;`;
+
+            const respostaBD = await database.query(queryInsertEmprestimo, [
+                emprestimo.idAluno,
+                emprestimo.idLivro,
+                emprestimo.dataEmprestimo,    
+                emprestimo.dataDevolucao,
+                emprestimo.statusEmprestimo
+            ]);
+
+            if (respostaBD.rows.length > 0) {
+                console.info(
+                    `Emprestimo cadastrado com sucesso. ID: ${respostaBD.rows[0].id_emprestimo}`
+                );
+                return true;
+            }
+
+            return false;
+        } catch (error) {
+            console.error(`Erro na consulta ao banco de dados. ${error}`);
+            return false;
+        }
     }
 }
 
