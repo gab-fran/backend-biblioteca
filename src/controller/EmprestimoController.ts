@@ -7,7 +7,7 @@ class EmprestimoController extends Emprestimo {
     
     static async listarTodos(req: Request, res: Response): Promise<Response> {
         try {
-            const listaEmprestimos: Array<Emprestimo> | null = await Emprestimo.listarEmprestimos();
+            const listaEmprestimos: Array<EmprestimoDTO> | null = await Emprestimo.listarEmprestimos();
 
             return res.status(200).json(listaEmprestimos);
 

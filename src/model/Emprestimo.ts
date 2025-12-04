@@ -83,59 +83,100 @@ class Emprestimo {
         this.statusEmprestimo = statusEmprestimo;
     }
 
-    static async listarEmprestimos(): Promise<Array<Emprestimo> | null> {
+    static async listarEmprestimos(): Promise<Array<EmprestimoDTO> | null> {
         try {
-            let listaDeEmprestimos: Array<Emprestimo> = [];
-            const querySelectEmprestimos = "SELECT * FROM Emprestimo;";
+            let listaEmprestimo: Array<EmprestimoDTO> = [];
+
+            const querySelectEmprestimos = `
+      SELECT
+        em.id_emprestimo,
+        em.id_aluno,
+        a.nome AS nome,
+        em.id_livro,
+        l.titulo AS titulo,
+        em.data_emprestimo,
+        em.data_devolucao,
+        em.status_emprestimo
+    FROM emprestimo em
+    JOIN aluno a ON em.id_aluno = a.id_aluno
+    JOIN livro l ON em.id_livro = l.id_livro;`;
+
             const respostaBD = await database.query(querySelectEmprestimos);
 
-            respostaBD.rows.forEach((EmprestimoBD) => {
-                const novoEmprestimo = new Emprestimo(
-                    EmprestimoBD.id_aluno,
-                    EmprestimoBD.id_livro,
-                    EmprestimoBD.data_emprestimo,
-                    EmprestimoBD.data_devolucao,
-                    EmprestimoBD.status
-                );
+            respostaBD.rows.forEach((emprestimoBD) => {
+                const novoEmprestimo: EmprestimoDTO = {
+                    idEmprestimo: emprestimoBD.id_emprestimo,
+                    idAluno: emprestimoBD.id_aluno,
+                    nomeAluno: emprestimoBD.nome,
+                    idLivro: emprestimoBD.id_livro,
+                    tituloLivro: emprestimoBD.titulo,
+                    dataEmprestimo: emprestimoBD.data_emprestimo,
+                    dataDevolucao: emprestimoBD.data_devolucao,
+                    statusEmprestimo: emprestimoBD.status_emprestimo
+                };
 
-                novoEmprestimo.setIdEmprestimo(EmprestimoBD.id_emprestimo);
-
-                listaDeEmprestimos.push(novoEmprestimo);
+                listaEmprestimo.push(novoEmprestimo);
             });
 
-            return listaDeEmprestimos;
+            return listaEmprestimo;
+
+
         } catch (error) {
-            console.error(`Erro na consulta ao banco de dados. ${error}`);
+            console.error(`Erro na consulta com o banco de dados.`, error);
+
             return null;
         }
-    }
+}
 
-    static async listarEmprestimoId(idEmprestimo: number): Promise<Emprestimo | null> {
+    static async listarEmprestimoId(idEmprestimo: number): Promise<EmprestimoDTO | null> {
         try {
-            const querySelectEmprestimo = "SELECT * FROM Emprestimo WHERE id_emprestimo = $1;";
+            let emprestimo: EmprestimoDTO | null = null;
+
+            const querySelectEmprestimo = `
+            SELECT
+        em.id_emprestimo,
+        em.id_aluno,
+        a.nome AS nome,
+        em.id_livro,
+        l.titulo AS titulo,
+        em.data_emprestimo,
+        em.data_devolucao,
+        em.status_emprestimo
+    FROM emprestimo em
+    JOIN aluno a ON em.id_aluno = a.id_aluno
+    JOIN livro l ON em.id_livro = l.id_livro
+    WHERE em.id_emprestimo = $1;`;
+
             const respostaBD = await database.query(querySelectEmprestimo, [idEmprestimo]);
 
-            if (respostaBD.rowCount != 0) {
-                const emprestimo: Emprestimo = new Emprestimo(
-                    respostaBD.rows[0].id_aluno,
-                    respostaBD.rows[0].id_livro,
-                    respostaBD.rows[0].data_emprestimo,
-                    respostaBD.rows[0].data_devolucao,
-                    respostaBD.rows[0].status
-                );
+            respostaBD.rows.forEach(emprestimoBD => {
+                
+                const novoEmprestimo: EmprestimoDTO = {
+                    idEmprestimo: emprestimoBD.id_emprestimo,
+                    idAluno: emprestimoBD.id_aluno,
+                    nomeAluno: emprestimoBD.nome,
+                    idLivro: emprestimoBD.id_livro,
+                    tituloLivro: emprestimoBD.titulo,
+                    dataEmprestimo: emprestimoBD.data_emprestimo,
+                    dataDevolucao: emprestimoBD.data_devolucao,
+                    statusEmprestimo: emprestimoBD.status_emprestimo
+                };
 
-                emprestimo.setIdEmprestimo(respostaBD.rows[0].id_emprestimo);
+                emprestimo = novoEmprestimo;
+            });
+
                 return emprestimo;
-            }
 
-            return null;
         } catch (error) {
-            console.error(`Erro ao buscar emprestimo no banco de dados. ${error}`);
+             console.error(`Erro na consulta com o banco de dados. ${error}`);
+
             return null;
         }
     }
 
-    static async cadastrarEmprestimo(emprestimo: EmprestimoDTO): Promise<boolean> {
+    static async cadastrarEmprestimo(
+        emprestimo: EmprestimoDTO
+    ): Promise<boolean> {
         try {
             const queryInsertEmprestimo = `INSERT INTO Emprestimo (id_aluno, id_livro, data_emprestimo, data_devolucao, status_emprestimo) 
                             VALUES
@@ -145,9 +186,9 @@ class Emprestimo {
             const respostaBD = await database.query(queryInsertEmprestimo, [
                 emprestimo.idAluno,
                 emprestimo.idLivro,
-                emprestimo.dataEmprestimo,    
+                emprestimo.dataEmprestimo,
                 emprestimo.dataDevolucao,
-                emprestimo.statusEmprestimo
+                emprestimo.statusEmprestimo,
             ]);
 
             if (respostaBD.rows.length > 0) {
