@@ -136,3 +136,16 @@ VALUES
 (14, 6, '2025-10-16', '2025-10-31', 'Em andamento'),
 (19, 9, '2025-10-17', '2025-11-01', 'Em andamento'),
 (6, 20, '2025-10-18', '2025-11-02', 'Em andamento');
+
+ALTER TABLE Aluno 
+ADD COLUMN situacao BOOLEAN DEFAULT TRUE;
+
+ALTER TABLE Livro
+ADD COLUMN situacao BOOLEAN DEFAULT TRUE;
+
+ALTER TABLE emprestimo 
+ADD COLUMN situacao BOOLEAN DEFAULT TRUE;
+
+SELECT * FROM Aluno;
+SELECT * FROM Livro;
+SELECT * FROM Emprestimo;

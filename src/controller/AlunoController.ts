@@ -56,6 +56,52 @@ class AlunoController extends Aluno {
         }
     }
 
+    static async atualizar(req: Request, res: Response): Promise<Response> {
+        try {
+            const idAluno: number = parseInt(req.params.idAluno as string);
+            const aluno: AlunoDTO = req.body;
+            aluno.idAluno = idAluno;
+
+            if (isNaN(aluno.idAluno) || aluno.idAluno <= 0) {
+                return res.status(400).json({ mensagem: "ID inválido"});
+            }
+
+            const respostaModelo: boolean = await Aluno.atualizarAluno(aluno);
+
+            if (respostaModelo) {
+                return res.status(200).json({ mensagem: `Aluno atualizado com sucesso.`});
+            } else {
+                return res.status(400).json({ mensagem: "Não foi possível atualizar o aluno, verifique se as informações fornecidas estão corretas."});
+            }
+
+            } catch (error) {
+            console.error(`Erro no modelo. ${error}`);
+            return res.status(500).json({ mensagem: "Não foi possível atualizar o aluno."});
+        }
+    }
+
+    static async remover(req: Request, res: Response): Promise<Response> {
+        try {
+            const idAluno: number = parseInt(req.params.idAluno as string);
+
+            if (isNaN(idAluno) || idAluno <= 0) {
+                return res.status(400).json({ mensagem: "ID inválido"});
+            }
+
+            const respostaModelo: boolean = await Aluno.removerAluno(idAluno);
+
+            if (respostaModelo) {
+                return res.status(200).json({ mensagem: `Aluno removido com sucesso.`});
+            } else {
+                return res.status(400).json({ mensagem: "Não foi possível remover o aluno."});
+            }
+
+        } catch (error) {
+            console.error(`Erro no modelo. ${error}`);
+            return res.status(500).json({ mensagem: "Não foi possível remover o aluno."});
+        }
+    }
+    
 }
 
 export default AlunoController;

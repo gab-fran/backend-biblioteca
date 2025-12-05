@@ -13,6 +13,8 @@ router.get("/api", (req: Request, res: Response) => {
 router.get("/api/alunos", AlunoController.listarTodos);
 router.get("/api/alunos/:idAluno", AlunoController.listarAluno);
 router.post("/api/alunos", AlunoController.novoAluno);
+router.put("/api/alunos/:idAluno", AlunoController.atualizar);
+router.delete("/api/alunos/:idAluno", AlunoController.remover);
 
 router.get("/api/livros", LivroController.listarTodos);
 router.get("/api/livros/:idLivro", LivroController.listarLivro);

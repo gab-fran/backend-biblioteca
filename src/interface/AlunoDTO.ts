@@ -7,4 +7,5 @@ export interface AlunoDTO {
     endereco: string;
     email: string;
     celular: string;
+    situacao?: boolean;
 }

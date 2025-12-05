@@ -13,6 +13,7 @@ class Aluno {
     private endereco: string;
     private email: string;
     private celular: string;
+    private situacao: boolean = true;
 
     // Construtor
     constructor(
@@ -105,10 +106,18 @@ class Aluno {
         this.celular = celular;
     }
 
+    // Situação
+    public getSituacao(): boolean {
+        return this.situacao;
+    }
+    public setSituacao(situacao: boolean): void {
+        this.situacao = situacao;
+    }
+
     static async listarAlunos(): Promise<Array<Aluno> | null> {
         try {
             let listaDeAlunos: Array<Aluno> = [];
-            const querySelectAlunos = "SELECT * FROM Aluno;";
+            const querySelectAlunos = "SELECT * FROM Aluno WHERE situacao=TRUE;";
             const respostaBD = await database.query(querySelectAlunos);
 
             respostaBD.rows.forEach((alunoBD) => {
@@ -123,6 +132,7 @@ class Aluno {
                 );
 
                 novoAluno.setIdAluno(alunoBD.id_aluno);
+                novoAluno.setSituacao(alunoBD.situacao);
 
                 listaDeAlunos.push(novoAluno);
             });
@@ -151,6 +161,7 @@ class Aluno {
                 );
 
                 aluno.setIdAluno(respostaBD.rows[0].id_aluno);
+                aluno.setSituacao(respostaBD.rows[0].situacao);
                 return aluno;
             }
 
@@ -190,6 +201,53 @@ class Aluno {
             return false;
         }
     }
+
+    static async atualizarAluno(aluno: AlunoDTO): Promise<boolean> {
+        try {
+            const queryUpdateAluno = `UPDATE Aluno SET nome = $1, sobrenome = $2, data_nascimento = $3, endereco = $4, email = $5, celular = $6 WHERE id_aluno = $7;`;
+
+            const respostaBD = await database.query(queryUpdateAluno, [
+                aluno.nome,
+                aluno.sobrenome,
+                aluno.dataNascimento,
+                aluno.endereco,
+                aluno.email,
+                aluno.celular,
+                aluno.idAluno,
+            ]);
+
+            if (respostaBD.rowCount != 0) {
+                console.info(`Aluno atualizado com sucesso. ID: ${aluno.idAluno}`);
+                return true;
+            }
+
+            return false;
+            
+        } catch (error) {
+            console.error(`Erro na consulta ao banco de dados. ${error}`);
+            return false;
+        }
+    }
+
+    static async removerAluno(idAluno: number): Promise<boolean> {
+        try {
+            const queryDeleteAluno = `UPDATE Aluno SET situacao = FALSE WHERE id_aluno = $1;`
+
+            const respostaBD = await database.query(queryDeleteAluno, [idAluno])
+
+            if (respostaBD.rowCount != 0) {
+                console.info(`Aluno removido com sucesso.`)
+                return true;
+            }
+
+            return false;
+
+        } catch (error) {
+            console.error(`Erro na consulta ao banco de dados. ${error}`);
+            return false;
+        }
+    }
+
 }
 
 export default Aluno;
