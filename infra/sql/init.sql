@@ -146,6 +146,9 @@ ADD COLUMN situacao BOOLEAN DEFAULT TRUE;
 ALTER TABLE emprestimo 
 ADD COLUMN situacao BOOLEAN DEFAULT TRUE;
 
+ALTER TABLE emprestimo
+ALTER COLUMN status_emprestimo SET DEFAULT 'Em andamento';
+
 SELECT * FROM Aluno;
 SELECT * FROM Livro;
 SELECT * FROM Emprestimo;
