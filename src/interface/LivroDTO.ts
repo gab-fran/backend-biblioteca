@@ -9,4 +9,5 @@ export interface LivroDTO {
     quantDisponivel: number;
     valorAquisicao: number;
     statusLivroEmprestado: string;
+    situacao?: boolean
 }

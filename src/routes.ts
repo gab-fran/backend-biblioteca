@@ -19,9 +19,13 @@ router.delete("/api/alunos/:idAluno", AlunoController.remover);
 router.get("/api/livros", LivroController.listarTodos);
 router.get("/api/livros/:idLivro", LivroController.listarLivro);
 router.post("/api/livros", LivroController.novoLivro);
+router.put("/api/livros/:idLivro", LivroController.atualizar);
+router.delete("/api/livros/:idLivro", LivroController.remover);
 
 router.get("/api/emprestimos", EmprestimoController.listarTodos);
 router.get("/api/emprestimos/:idEmprestimo", EmprestimoController.listarEmprestimo);
 router.post("/api/emprestimos", EmprestimoController.novoEmprestimo);
+router.put("/api/emprestimos/:idEmprestimo", EmprestimoController.atualizar);
+router.delete("/api/emprestimos/:idEmprestimo", EmprestimoController.remover);
 
 export {router};

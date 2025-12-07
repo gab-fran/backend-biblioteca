@@ -15,6 +15,7 @@ class Livro {
     private quantDisponivel: number;
     private valorAquisicao: number;
     private statusLivroEmprestado: string;
+    private situacao: boolean = true;
 
     // Construtor
     constructor(
@@ -130,10 +131,19 @@ class Livro {
         this.statusLivroEmprestado = status_livro_emprestado;
     }
 
+    // Situação
+    public getSituacao(): boolean {
+        return this.situacao;
+    }
+
+    public setSituacao(situacao: boolean): void {
+        this.situacao = situacao;
+    }
+
     static async listarLivros(): Promise<Array<Livro> | null> {
         try {
             let listaDeLivros: Array<Livro> = [];
-            const querySelectLivros = "SELECT * FROM Livro;";
+            const querySelectLivros = "SELECT * FROM Livro WHERE situacao=TRUE ORDER BY id_livro ASC;";
             const respostaBD = await database.query(querySelectLivros);
 
             respostaBD.rows.forEach((LivroBD) => {
@@ -150,6 +160,7 @@ class Livro {
                 );
 
                 novoLivro.setIdLivro(LivroBD.id_livro);
+                novoLivro.setSituacao(LivroBD.situacao);
 
                 listaDeLivros.push(novoLivro);
             });
@@ -180,6 +191,7 @@ class Livro {
                 );
 
                 livro.setIdLivro(respostaBD.rows[0].id_livro);
+                livro.setSituacao(respostaBD.rows[0].situacao);
                 return livro;
             }
 
@@ -222,6 +234,56 @@ class Livro {
             return false;
         }
     }
+
+    static async atualizarLivro(livro: LivroDTO): Promise<boolean> {
+        try {
+            const queryUpdateLivro = `UPDATE Livro SET titulo = $1, autor = $2, editora = $3, ano_publicacao = $4, isbn = $5, quant_total = $6, quant_disponivel = $7, valor_aquisicao = $8, status_livro_emprestado = $9 WHERE id_livro = $10;`;
+
+            const respostaBD = await database.query(queryUpdateLivro, [
+                livro.titulo,
+                livro.autor,
+                livro.editora,
+                livro.anoPublicacao,
+                livro.isbn,
+                livro.quantTotal,
+                livro.quantDisponivel,
+                livro.valorAquisicao,
+                livro.statusLivroEmprestado,
+                livro.idLivro
+            ]);
+
+            if (respostaBD.rowCount != 0) {
+                console.info(`Livro atualizado com sucesso. ID: ${livro.idLivro}`);
+                return true;
+            }
+
+            return false;
+            
+        } catch (error) {
+            console.error(`Erro na consulta ao banco de dados. ${error}`);
+            return false;
+        }
+    }
+
+    static async removerLivro(idLivro: number): Promise<boolean> {
+        try {
+            const queryDeleteLivro = `UPDATE Livro SET situacao = FALSE WHERE id_livro = $1;`
+
+            const respostaBD = await database.query(queryDeleteLivro, [idLivro])
+
+            if (respostaBD.rowCount != 0) {
+                console.info(`Livro removido com sucesso.`)
+                return true;
+            }
+
+            return false;
+
+        } catch (error) {
+            console.error(`Erro na consulta ao banco de dados. ${error}`);
+            return false;
+        }
+    }
+
 }
 
 export default Livro;

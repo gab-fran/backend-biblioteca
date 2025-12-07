@@ -11,6 +11,7 @@ class Emprestimo {
     private dataEmprestimo: Date;
     private dataDevolucao: Date;
     private statusEmprestimo: string;
+    private situacao: boolean = true;
 
     // Construtor
     constructor(
@@ -83,6 +84,15 @@ class Emprestimo {
         this.statusEmprestimo = statusEmprestimo;
     }
 
+    // Situação
+    public getSituacao(): boolean {
+        return this.situacao;
+    }
+
+    public setSituacao(situacao: boolean): void {
+        this.situacao = situacao;
+    }
+
     static async listarEmprestimos(): Promise<Array<EmprestimoDTO> | null> {
         try {
             let listaEmprestimo: Array<EmprestimoDTO> = [];
@@ -99,7 +109,9 @@ class Emprestimo {
         em.status_emprestimo
     FROM emprestimo em
     JOIN aluno a ON em.id_aluno = a.id_aluno
-    JOIN livro l ON em.id_livro = l.id_livro;`;
+    JOIN livro l ON em.id_livro = l.id_livro
+    WHERE em.situacao = TRUE
+    ORDER BY em.id_emprestimo ASC;`;
 
             const respostaBD = await database.query(querySelectEmprestimos);
 
@@ -112,7 +124,8 @@ class Emprestimo {
                     tituloLivro: emprestimoBD.titulo,
                     dataEmprestimo: emprestimoBD.data_emprestimo,
                     dataDevolucao: emprestimoBD.data_devolucao,
-                    statusEmprestimo: emprestimoBD.status_emprestimo
+                    statusEmprestimo: emprestimoBD.status_emprestimo,
+                    situacao: emprestimoBD.situacao
                 };
 
                 listaEmprestimo.push(novoEmprestimo);
@@ -159,7 +172,8 @@ class Emprestimo {
                     tituloLivro: emprestimoBD.titulo,
                     dataEmprestimo: emprestimoBD.data_emprestimo,
                     dataDevolucao: emprestimoBD.data_devolucao,
-                    statusEmprestimo: emprestimoBD.status_emprestimo
+                    statusEmprestimo: emprestimoBD.status_emprestimo,
+                    situacao: emprestimoBD.situacao
                 };
 
                 emprestimo = novoEmprestimo;
@@ -204,6 +218,52 @@ class Emprestimo {
             return false;
         }
     }
+
+    static async atualizarEmprestimo(emprestimo: EmprestimoDTO): Promise<boolean> {
+        try {
+            const queryUpdateEmprestimo = `UPDATE Emprestimo SET id_aluno = $1, id_livro = $2, data_emprestimo = $3, data_devolucao = $4, status_emprestimo = $5 WHERE id_emprestimo = $6;`;
+
+            const respostaBD = await database.query(queryUpdateEmprestimo, [
+                emprestimo.idAluno,
+                emprestimo.idEmprestimo,
+                emprestimo.dataEmprestimo,
+                emprestimo.dataDevolucao,
+                emprestimo.statusEmprestimo,
+                emprestimo.idEmprestimo
+            ]);
+
+            if (respostaBD.rowCount != 0) {
+                console.info(`Emprestimo atualizado com sucesso. ID: ${emprestimo.idEmprestimo}`);
+                return true;
+            }
+
+            return false;
+            
+        } catch (error) {
+            console.error(`Erro na consulta ao banco de dados. ${error}`);
+            return false;
+        }
+    }
+
+    static async removerEmprestimo(idEmprestimo: number): Promise<boolean> {
+        try {
+            const queryDeleteEmprestimo = `UPDATE Emprestimo SET situacao = FALSE WHERE id_emprestimo = $1;`
+
+            const respostaBD = await database.query(queryDeleteEmprestimo, [idEmprestimo])
+
+            if (respostaBD.rowCount != 0) {
+                console.info(`Emprestimo removido com sucesso.`)
+                return true;
+            }
+
+            return false;
+
+        } catch (error) {
+            console.error(`Erro na consulta ao banco de dados. ${error}`);
+            return false;
+        }
+    }
+
 }
 
 export default Emprestimo;

@@ -117,7 +117,7 @@ class Aluno {
     static async listarAlunos(): Promise<Array<Aluno> | null> {
         try {
             let listaDeAlunos: Array<Aluno> = [];
-            const querySelectAlunos = "SELECT * FROM Aluno WHERE situacao=TRUE;";
+            const querySelectAlunos = "SELECT * FROM Aluno WHERE situacao=TRUE ORDER BY id_aluno ASC;";
             const respostaBD = await database.query(querySelectAlunos);
 
             respostaBD.rows.forEach((alunoBD) => {

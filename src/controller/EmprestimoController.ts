@@ -56,6 +56,52 @@ class EmprestimoController extends Emprestimo {
         }
     }
 
+    static async atualizar(req: Request, res: Response): Promise<Response> {
+        try {
+            const idEmprestimo: number = parseInt(req.params.idEmprestimo as string);
+            const emprestimo: EmprestimoDTO = req.body;
+            emprestimo.idEmprestimo = idEmprestimo;
+
+            if (isNaN(emprestimo.idEmprestimo) || emprestimo.idEmprestimo <= 0) {
+                return res.status(400).json({ mensagem: "ID inválido"});
+            }
+
+            const respostaModelo: boolean = await Emprestimo.atualizarEmprestimo(emprestimo);
+
+            if (respostaModelo) {
+                return res.status(200).json({ mensagem: `Emprestimo atualizado com sucesso.`});
+            } else {
+                return res.status(400).json({ mensagem: "Não foi possível atualizar o emprestimo, verifique se as informações fornecidas estão corretas."});
+            }
+
+            } catch (error) {
+            console.error(`Erro no modelo. ${error}`);
+            return res.status(500).json({ mensagem: "Não foi possível atualizar o emprestimo."});
+        }
+    }
+
+    static async remover(req: Request, res: Response): Promise<Response> {
+        try {
+            const idEmprestimo: number = parseInt(req.params.idEmprestimo as string);
+
+            if (isNaN(idEmprestimo) || idEmprestimo <= 0) {
+                return res.status(400).json({ mensagem: "ID inválido"});
+            }
+
+            const respostaModelo: boolean = await Emprestimo.removerEmprestimo(idEmprestimo);
+
+            if (respostaModelo) {
+                return res.status(200).json({ mensagem: `Emprestimo removido com sucesso.`});
+            } else {
+                return res.status(400).json({ mensagem: "Não foi possível remover o emprestimo."});
+            }
+
+        } catch (error) {
+            console.error(`Erro no modelo. ${error}`);
+            return res.status(500).json({ mensagem: "Não foi possível remover o emprestimo."});
+        }
+    }
+
 }
 
 export default EmprestimoController;

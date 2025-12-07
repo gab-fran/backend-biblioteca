@@ -7,4 +7,5 @@ export interface EmprestimoDTO {
     statusEmprestimo: string;
     nomeAluno?: string;
     tituloLivro?: string;
+    situacao?: boolean
 }

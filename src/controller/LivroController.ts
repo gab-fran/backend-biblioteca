@@ -56,6 +56,52 @@ class LivroController extends Livro {
         }
     }
 
+    static async atualizar(req: Request, res: Response): Promise<Response> {
+        try {
+            const idLivro: number = parseInt(req.params.idLivro as string);
+            const livro: LivroDTO = req.body;
+            livro.idLivro = idLivro;
+
+            if (isNaN(livro.idLivro) || livro.idLivro <= 0) {
+                return res.status(400).json({ mensagem: "ID inválido"});
+            }
+
+            const respostaModelo: boolean = await Livro.atualizarLivro(livro);
+
+            if (respostaModelo) {
+                return res.status(200).json({ mensagem: `Livro atualizado com sucesso.`});
+            } else {
+                return res.status(400).json({ mensagem: "Não foi possível atualizar o livro, verifique se as informações fornecidas estão corretas."});
+            }
+
+            } catch (error) {
+            console.error(`Erro no modelo. ${error}`);
+            return res.status(500).json({ mensagem: "Não foi possível atualizar o livro."});
+        }
+    }
+
+    static async remover(req: Request, res: Response): Promise<Response> {
+        try {
+            const idLivro: number = parseInt(req.params.idLivro as string);
+
+            if (isNaN(idLivro) || idLivro <= 0) {
+                return res.status(400).json({ mensagem: "ID inválido"});
+            }
+
+            const respostaModelo: boolean = await Livro.removerLivro(idLivro);
+
+            if (respostaModelo) {
+                return res.status(200).json({ mensagem: `Livro removido com sucesso.`});
+            } else {
+                return res.status(400).json({ mensagem: "Não foi possível remover o livro."});
+            }
+
+        } catch (error) {
+            console.error(`Erro no modelo. ${error}`);
+            return res.status(500).json({ mensagem: "Não foi possível remover o livro."});
+        }
+    }
+
 }
 
 export default LivroController;
