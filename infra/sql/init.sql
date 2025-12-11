@@ -147,13 +147,37 @@ ALTER TABLE emprestimo
 ADD COLUMN situacao BOOLEAN DEFAULT TRUE;
 
 ALTER TABLE emprestimo
-ALTER COLUMN status_emprestimo SET DEFAULT 'Em andamento';
+DROP COLUMN status_emprestimo;
+
+CREATE OR REPLACE VIEW v_emprestimos_status AS
+SELECT
+		em.id_emprestimo,
+        em.id_aluno,
+        a.nome || ' ' || a.sobrenome AS nome,
+        em.id_livro,
+        l.titulo AS titulo,
+        em.data_emprestimo,
+        em.data_devolucao,
+    CASE
+        WHEN CURRENT_DATE > em.data_devolucao THEN 'Em atraso'
+        ELSE 'Em andamento'
+    END AS status_emprestimo
+FROM Emprestimo em
+JOIN Aluno a ON a.id_aluno = em.id_aluno
+JOIN Livro l ON l.id_livro = em.id_livro
+WHERE em.situacao = TRUE
+ORDER BY em.id_emprestimo ASC;
+
+
 
 SELECT * FROM Aluno;
 SELECT * FROM Livro;
 SELECT * FROM Emprestimo;
+SELECT * FROM v_emprestimos_status;
 
+
+-- DROP VIEW v_emprestimos_status;
+-- DROP SEQUENCE seq_ra;
 -- DROP TABLE Aluno CASCADE;
 -- DROP TABLE Livro CASCADE;
 -- DROP TABLE Emprestimo CASCADE;
--- DROP SEQUENCE seq_ra;

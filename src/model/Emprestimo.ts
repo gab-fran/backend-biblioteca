@@ -97,21 +97,7 @@ class Emprestimo {
         try {
             let listaEmprestimo: Array<EmprestimoDTO> = [];
 
-            const querySelectEmprestimos = `
-      SELECT
-        em.id_emprestimo,
-        em.id_aluno,
-        a.nome AS nome,
-        em.id_livro,
-        l.titulo AS titulo,
-        em.data_emprestimo,
-        em.data_devolucao,
-        em.status_emprestimo
-    FROM emprestimo em
-    JOIN aluno a ON em.id_aluno = a.id_aluno
-    JOIN livro l ON em.id_livro = l.id_livro
-    WHERE em.situacao = TRUE
-    ORDER BY em.id_emprestimo ASC;`;
+            const querySelectEmprestimos = `SELECT * FROM v_emprestimos_status;`;
 
             const respostaBD = await database.query(querySelectEmprestimos);
 
@@ -192,9 +178,9 @@ class Emprestimo {
         emprestimo: EmprestimoDTO
     ): Promise<boolean> {
         try {
-            const queryInsertEmprestimo = `INSERT INTO Emprestimo (id_aluno, id_livro, data_emprestimo, data_devolucao, status_emprestimo) 
+            const queryInsertEmprestimo = `INSERT INTO Emprestimo (id_aluno, id_livro, data_emprestimo, data_devolucao) 
                             VALUES
-                            ($1, $2, $3, $4, $5)
+                            ($1, $2, $3, $4)
                             RETURNING id_emprestimo;`;
 
             const respostaBD = await database.query(queryInsertEmprestimo, [
@@ -202,7 +188,6 @@ class Emprestimo {
                 emprestimo.idLivro,
                 emprestimo.dataEmprestimo,
                 emprestimo.dataDevolucao,
-                emprestimo.statusEmprestimo,
             ]);
 
             if (respostaBD.rows.length > 0) {
